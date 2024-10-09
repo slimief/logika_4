@@ -1,0 +1,131 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include <string.h>
+#include <locale.h>
+
+struct Node {
+    char* data; // Строка для хранения данных
+    int count;  // Счетчик вхождений (в этом контексте будет всегда равен 1)
+    struct Node* left;
+    struct Node* right;
+};
+
+// Глобальная переменная для корня дерева
+struct Node* root;
+
+// Функция для создания дерева
+struct Node* CreateTree(struct Node* root, const char* data) {
+    if (root == NULL) {
+        root = (struct Node*)malloc(sizeof(struct Node));
+        if (root == NULL) {
+            printf("Ошибка выделения памяти");
+            exit(0);
+        }
+        root->left = NULL;
+        root->right = NULL;
+        root->data = (char*)malloc(strlen(data) + 1); // Выделение памяти для строки
+        if (root->data == NULL) {
+            printf("Ошибка выделения памяти для строки");
+            exit(0);
+        }
+        strcpy(root->data, data); // Копирование строки
+        root->count = 1; // Инициализация счетчика
+        return root;
+    }
+
+    if (strcmp(data, root->data) == 0) {
+        // Если значение уже существует, просто игнорируем его добавление
+        printf("Значение '%s' уже существует в дереве и не будет добавлено.\n", data);
+    }
+    else if (strcmp(data, root->data) < 0) {
+        root->left = CreateTree(root->left, data);
+    }
+    else {
+        root->right = CreateTree(root->right, data);
+    }
+    return root;
+}
+
+// Функция для печати дерева
+void print_tree(struct Node* r, int l) {
+    if (r == NULL) {
+        return;
+    }
+    print_tree(r->right, l + 1);
+    for (int i = 0; i < l; i++) {
+        printf(" ");
+    }
+    printf("%s\n", r->data);
+    print_tree(r->left, l + 1);
+}
+
+// Функция для поиска значения в дереве
+struct Node* SearchTree(struct Node* root, const char* data) {
+    if (root == NULL || strcmp(root->data, data) == 0) {
+        return root;
+    }
+    if (strcmp(data, root->data) < 0) {
+        return SearchTree(root->left, data);
+    }
+    else {
+        return SearchTree(root->right, data);
+    }
+}
+
+// Функция для подсчета вхождений
+int CountOccurrences(struct Node* root, const char* data) {
+    struct Node* foundNode = SearchTree(root, data);
+    if (foundNode != NULL) {
+        return foundNode->count;
+    }
+    return 0; // Если узел не найден, возвращаем 0
+}
+
+int main() {
+    setlocale(LC_ALL, "");
+    char D[100]; // Буфер для ввода строки
+    int start = 1;
+    int count = 0; // Счетчик вводов
+    const int max_c = 10; // Максимальное количество вводов
+    root = NULL;
+
+    printf("Введите '-1' для окончания построения дерева\n");
+    while (start) {
+        if (count >= max_c) {
+            printf("Максимальное количество вводов достигнуто. Построение дерева окончено.\n\n");
+            break;
+        }
+
+        printf("Введите строку: ");
+        scanf("%s", D); // Используем %[^\n] для считывания строки с пробелами, если это необходимо
+        if (strcmp(D, "-1") == 0) {
+            printf("Построение дерева окончено\n\n");
+            start = 0;
+        }
+        else {
+            root = CreateTree(root, D);
+            count++;
+        }
+    }
+
+    printf("\nДерево:\n");
+    print_tree(root, 0);
+
+    printf("Введите строку для поиска: ");
+    scanf("%s", D);
+    int occurrences = CountOccurrences(root, D);
+    if (occurrences > 0) {
+        printf("Значение '%s' найдено в дереве %d раз.\n", D, occurrences);
+    }
+    else {
+        printf("Значение '%s' не найдено в дереве.\n", D);
+    }
+
+    // Освобождаем выделенную память
+    // Здесь необходимо реализовать функцию очистки памяти для всего дерева
+
+    return 0;
+}
