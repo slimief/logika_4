@@ -1,0 +1,101 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include <string.h>
+#include <locale.h>
+
+struct Node {
+	int data;
+	int count; //cчетчик вхождений
+	struct Node* left;
+	struct Node* right;
+};
+struct Node* root;
+
+struct Node* CreateTree(struct Node* root, int data) {
+	if (root == NULL) {
+		root = (struct Node*)malloc(sizeof(struct Node));
+		if (root == NULL) {
+			printf("Ошибка выделения памяти");
+			exit(0);
+		}
+		root->left = NULL;
+		root->right = NULL;
+		root->data = data;
+		root->count = 1; // Инициализация счетчика
+		return root;
+	}
+	if (data == root->data) {
+		root->count++; // Увеличиваем счетчик, если такое значение уже есть
+	}
+	else if (data < root->data) {
+		root->left = CreateTree(root->left, data);
+	}
+	else {
+		root->right = CreateTree(root->right, data);
+	}
+	return root;
+}
+
+void print_tree(struct Node* r, int l){
+	if (r == NULL){
+		return;
+	}
+	print_tree(r->right, l + 1);
+	for (int i = 0; i < l; i++){
+		printf(" ");
+	}
+	printf("%d\n", r->data);
+	print_tree(r->left, l + 1);
+}
+//поиск значения в дереве
+struct Node* SearchTree(struct Node* root, int data) {
+	if (root == NULL || root->data == data) {
+		return root;
+	}
+	if (data < root->data) {
+		return SearchTree(root->left, data);
+	}
+	else {
+		return SearchTree(root->right, data);
+	}
+}
+
+int CountOccurrences(struct Node* root, int data) {
+    struct Node* foundNode = SearchTree(root, data);
+    if (foundNode != NULL) {
+        return foundNode->count; // Возврат счетчика найденного узла
+    }
+    return 0; // Если узел не найден, возвращаем 0
+}
+
+int main(){
+	setlocale(LC_ALL, "");
+	int D, start = 1;
+	root = NULL;
+	printf(" '-1' - окончание построения дерева\n");
+	while (start){
+		printf("Введите число: ");
+		scanf_s("%d", &D);
+		if (D == -1){
+			printf("Построение дерева окончено\n\n");
+			start = 0;
+		}
+		else
+			root = CreateTree(root, D);
+	}
+	print_tree(root, 0);
+	//поиск в дереве
+	printf("Введите значение для поиска: ");
+	scanf_s("%d", &D);
+	int occurrences = CountOccurrences(root, D);
+	if (occurrences > 0) {
+		printf("Значение %d найдено в дереве %d раз.\n", D, occurrences);
+	}
+	else {
+		printf("Значение %d не найдено в дереве.\n", D);
+	}
+	return 0;
+}
